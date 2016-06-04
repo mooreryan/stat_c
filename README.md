@@ -1,5 +1,7 @@
 # StatC
 
+[![Gem Version](https://badge.fury.io/rb/stat_c.svg)](https://badge.fury.io/rb/stat_c) [![Build Status](https://travis-ci.org/mooreryan/stat_c.svg?branch=master)](https://travis-ci.org/mooreryan/stat_c) [![Coverage Status](https://coveralls.io/repos/github/mooreryan/stat_c/badge.svg?branch=master)](https://coveralls.io/github/mooreryan/stat_c?branch=master)
+
 Fast, well documented C stats extension for Ruby.
 
 ## Installation
