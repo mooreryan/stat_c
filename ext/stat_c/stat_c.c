@@ -67,7 +67,8 @@ static VALUE sc_mean(VALUE obj, VALUE ary)
 
   unsigned long i = 0;
   long double sum = 0;
-  size_t len = assert_array_not_empty(ary);
+  size_t len = 0;
+  len = assert_array_not_empty(ary);
 
   for (i = 0; i < len; ++i) {
     sum += NUM2DBL(rb_ary_entry(ary, i));
@@ -105,7 +106,8 @@ static VALUE sc_var(int argc, VALUE* argv, VALUE obj)
 
   unsigned long i = 0;
   long double sum = 0;
-  size_t len = assert_array_not_empty(ary);
+  size_t len = 0;
+  len = assert_array_not_empty(ary);
 
   long double mean = NUM2DBL(sc_mean(obj, ary));
 
@@ -177,7 +179,8 @@ static VALUE sc_se(int argc, VALUE* argv, VALUE obj)
 
   long double sd = NUM2DBL(sc_sd(argc, argv, obj));
 
-  size_t len = assert_array_not_empty(ary);
+  size_t len = 0;
+  len = assert_array_not_empty(ary);
 
   return DBL2NUM(sd / sqrt(len));
 }
