@@ -21,6 +21,10 @@ along with StatC.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 
 #include <ruby.h>
+#include <math.h>
+
+/* based on NIL_P in ruby.h */
+#define FALSE_P(v) !((VALUE)(v) != Qfalse)
 
 /* classes and modules */
 VALUE sc_mStatC;
@@ -28,16 +32,42 @@ VALUE sc_mArray;
 VALUE sc_mError;
 VALUE sc_eError;
 
-static VALUE sc_mean(VALUE self, VALUE ary)
+/* @private */
+static size_t assert_array_not_empty(VALUE ary)
 {
-
-  unsigned long i = 0;
-  long double sum = 0;
   size_t len = RARRAY_LEN(ary);
 
   if (len <= 0) {
     rb_raise(sc_eError, "Array cannot be empty");
+  } else {
+    return len;
   }
+}
+
+/* @private */
+static long double sc_ary_entry(VALUE ary, long idx)
+{
+  return NUM2DBL(rb_ary_entry(ary, idx));
+}
+
+/* Calculate the mean of values in the given array.
+
+@param ary [Array<Numeric>] an array of Numerics
+
+@example Get mean of array
+  StatC::Array.mean([-1.4, 0, 1, 2, 3.0]).round(2)  #=> 0.92
+
+@raise [StatC::Error::Error] if array length is zero
+
+@return [Numeric] mean of values in the array
+
+*/
+static VALUE sc_mean(VALUE obj, VALUE ary)
+{
+
+  unsigned long i = 0;
+  long double sum = 0;
+  size_t len = assert_array_not_empty(ary);
 
   for (i = 0; i < len; ++i) {
     sum += NUM2DBL(rb_ary_entry(ary, i));
@@ -46,44 +76,162 @@ static VALUE sc_mean(VALUE self, VALUE ary)
   return DBL2NUM(sum / len);
 }
 
-/* static VALUE var(VALUE self, VALUE ary) */
-/* { */
+/* Calculate the variance of values in given array.
 
-/* } */
+If pop param is set to true, calculates the population variance of
+values in the array. Otherwise, the sample variance is calculated
+(default).
 
-/* static VALUE var(int argc, VALUE* argv, VALUE self) */
-/* { */
-/*   VALUE ary, sample; */
+@param ary [Array<Numeric>] an array of Numerics
+@param pop [Bool] pass true to calculate population variance,
+  default: false
 
-/*   /\* one required and one optional argument *\/ */
-/*   rb_scan_args(argc, argv, "11", &ary, &sample); */
+@example Get sample variance of array
+  StatC::Array.var([-1.4, 0, 1, 2, 3.0]).round(2)  #=> 2.93
+@example Get population variance of array
+  StatC::Array.var([-1.4, 0, 1, 2, 3.0], pop=true).round(2)  #=> 2.35
 
-/*   /\* if sample wasn't specified, set it to true *\/ */
-/*   if (NIL_P(sample)) { sample = 1; } */
-/* } */
+@raise [StatC::Error::Error] if array length is zero
 
-/* static VALUE var(int argc, VALUE* argv, VALUE self) */
-/* { */
-/*   VALUE ary, sample; */
+@return [Numeric] variance of values in the array
 
-/*   /\* one required and one optional argument *\/ */
-/*   rb_scan_args(argc, argv, "11", &ary, &sample); */
+*/
+static VALUE sc_var(int argc, VALUE* argv, VALUE obj)
+{
+  VALUE ary, calc_pop_var;
 
-/*   /\* if sample wasn't specified, set it to true *\/ */
-/*   if (NIL_P(sample)) { sample = 1; } */
-/* } */
+  /* one required and one optional argument */
+  rb_scan_args(argc, argv, "11", &ary, &calc_pop_var);
 
+  unsigned long i = 0;
+  long double sum = 0;
+  size_t len = assert_array_not_empty(ary);
+
+  long double mean = NUM2DBL(sc_mean(obj, ary));
+
+  for (i = 0; i < len; ++i) {
+    sum += pow(sc_ary_entry(ary, i) - mean, 2);
+  }
+
+  if (NIL_P(calc_pop_var) || FALSE_P(calc_pop_var)) { /* sample variance */
+    return DBL2NUM(sum / (len - 1));
+  } else { /* population variance */
+    return DBL2NUM(sum / len);
+  }
+}
+
+/* Calculate the standard deviation of values in given array.
+
+If pop param is set to true, the standard deviation is based on
+population variance. Otherwise, sample variance is used (default).
+
+@param ary [Array<Numeric>] an array of Numerics
+@param pop [Bool] pass true to calculate population standard
+  deviation, default: false
+
+@example Get sample standard deviation of array
+  StatC::Array.sd([-1.4, 0, 1, 2, 3.0]).round(2)  #=> 1.71
+@example Get population standard deviation of array
+  StatC::Array.sd([-1.4, 0, 1, 2, 3.0], pop=true).round(2)  #=> 1.53
+
+@raise [StatC::Error::Error] if array length is zero
+
+@return [Numeric] standard deviation of values in the array
+
+*/
+static VALUE sc_sd(int argc, VALUE* argv, VALUE obj)
+{
+  VALUE ary, calc_pop_var;
+
+  /* one required and one optional argument */
+  rb_scan_args(argc, argv, "11", &ary, &calc_pop_var);
+
+  return DBL2NUM(sqrt(NUM2DBL(sc_var(argc, argv, obj))));
+}
+
+/* Calculate the standard deviation of values in given array.
+
+If pop param is set to true, the standard error of the mean is based
+on population variance. Otherwise, sample variance is used (default).
+
+@param ary [Array<Numeric>] an array of Numerics
+@param pop [Bool] pass true to calculate population standard
+  error of the mean, default: false
+
+@example Get sample standard error of array
+  StatC::Array.se([-1.4, 0, 1, 2, 3.0]).round(2)  #=> 0.77
+@example Get population standard error of array
+  StatC::Array.se([-1.4, 0, 1, 2, 3.0], pop=true).round(2)  #=> 0.68
+
+@raise [StatC::Error::Error] if array length is zero
+
+@return [Numeric] standard error of the mean for values in the array
+
+*/
+static VALUE sc_se(int argc, VALUE* argv, VALUE obj)
+{
+  VALUE ary, calc_pop_var;
+
+  /* one required and one optional argument */
+  rb_scan_args(argc, argv, "11", &ary, &calc_pop_var);
+
+  long double sd = NUM2DBL(sc_sd(argc, argv, obj));
+
+  size_t len = assert_array_not_empty(ary);
+
+  return DBL2NUM(sd / sqrt(len));
+}
+
+/* Document-module: StatC::Array
+
+Statistical methods operating on the values of an array
+
+*/
+static void sc_init_mArray(void)
+{
+  sc_mArray = rb_define_module_under(sc_mStatC, "Array");
+
+  rb_define_singleton_method(sc_mArray, "mean", sc_mean, 1);
+  rb_define_singleton_method(sc_mArray, "var",  sc_var, -1);
+  rb_define_singleton_method(sc_mArray, "sd",   sc_sd,  -1);
+  rb_define_singleton_method(sc_mArray, "se",   sc_se,  -1);
+}
+
+/* Document-module: StatC::Error
+
+Module containing all error classes of the StatC module.
+
+ */
+static void sc_init_mError(void)
+{
+  sc_mError = rb_define_module_under(sc_mStatC, "Error");
+}
+
+
+/* Document-class: StatC::Error::Error
+
+Error class from which all errors raised by StatC inherit. Thus, you
+can rescue from StatC::Error::Error to catch all errors specific to
+StatC.
+
+@note Inherits from StandardError
+
+*/
+static void sc_init_eError(void)
+{
+  sc_eError = rb_define_class_under(sc_mError, "Error", rb_eStandardError);
+}
+
+/* Document-module: StatC
+
+C stats module for Ruby.
+
+*/
 void Init_stat_c(void)
 {
   sc_mStatC = rb_define_module("StatC");
 
-  sc_mArray = rb_define_module_under(sc_mStatC, "Array");
-  sc_mError = rb_define_module_under(sc_mStatC, "Error");
-
-  sc_eError    = rb_define_class_under(sc_mError, "Error", rb_eStandardError);
-
-  rb_define_singleton_method(sc_mArray, "mean", sc_mean, 1);
-  /* rb_define_singleton_method(mArray, "var",  var,  1); */
-  /* rb_define_singleton_method(mArray, "sd",   sd,  -1); */
-  /* rb_define_singleton_method(mArray, "se",   se,  -1); */
+  sc_init_mArray();
+  sc_init_mError();
+  sc_init_eError();
 }

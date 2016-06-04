@@ -10,8 +10,8 @@ Gem::Specification.new do |spec|
   spec.email         = ["moorer@udel.edu"]
   spec.license       = "GPLv3"
 
-  spec.summary       = %q{Fast statistics library. C extension.}
-  spec.description   = %q{Fast statistics library. C extension.}
+  spec.summary       = %q{Fast, well documented C stats extension for Ruby.}
+  spec.description   = %q{Fast, well documented C stats extension for Ruby.}
   spec.homepage      = "https://github.com/mooreryan/stat_c"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

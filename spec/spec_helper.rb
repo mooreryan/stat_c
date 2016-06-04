@@ -21,3 +21,8 @@ Coveralls.wear!
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'stat_c'
+
+module SHelper
+  # 1e-16 forces use of long double in C code
+  ALLOWED_ERR = 1e-16
+end

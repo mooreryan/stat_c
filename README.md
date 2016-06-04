@@ -1,8 +1,6 @@
 # StatC
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/stat_c`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Fast, well documented C stats extension for Ruby.
 
 ## Installation
 
@@ -22,7 +20,53 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require "stat_c"
+
+ary = [-1.4, 0, 1, 2, 3.0]
+
+StatC::Array.mean(ary).round(2)  #=> 0.92
+
+# Stats based on sample variance
+StatC::Array.var(ary).round(2)  #=> 2.93
+StatC::Array.sd(ary).round(2)   #=> 1.71
+StatC::Array.se(ary).round(2)   #=> 0.77
+
+# Stats based on population variance
+StatC::Array.var(ary, pop=true).round(2)  #=> 2.35
+StatC::Array.sd(ary,  pop=true).round(2)  #=> 1.53
+StatC::Array.se(ary,  pop=true).round(2)  #=> 0.68
+```
+
+## Benchmark ##
+
+StatC is faster than pure Ruby (duh, it's a C extension {^_^} ). See `benchmark/benchmark.rb` for more info.
+
+    $ ruby benchmark/benchmark.rb
+
+    Rehearsal ----------------------------------------------
+    Ruby  mean   0.090000   0.000000   0.090000 (  0.085029)
+    StatC mean   0.010000   0.000000   0.010000 (  0.009604)
+    Ruby  var    0.350000   0.010000   0.360000 (  0.357243)
+    StatC var    0.020000   0.000000   0.020000 (  0.020343)
+    Ruby  sd     0.350000   0.000000   0.350000 (  0.355273)
+    StatC sd     0.020000   0.000000   0.020000 (  0.018590)
+    Ruby  se     0.340000   0.000000   0.340000 (  0.353170)
+    StatC se     0.030000   0.000000   0.030000 (  0.025813)
+    ------------------------------------- total: 1.220000sec
+
+                     user     system      total        real
+    Ruby  mean   0.080000   0.000000   0.080000 (  0.079849)
+    StatC mean   0.000000   0.000000   0.000000 (  0.009006)
+
+    Ruby  var    0.320000   0.010000   0.330000 (  0.322538)
+    StatC var    0.020000   0.000000   0.020000 (  0.018962)
+
+    Ruby  sd     0.330000   0.000000   0.330000 (  0.329038)
+    StatC sd     0.020000   0.000000   0.020000 (  0.020783)
+
+    Ruby  se     0.310000   0.000000   0.310000 (  0.319696)
+    StatC se     0.020000   0.000000   0.020000 (  0.019259)
 
 ## Development
 
