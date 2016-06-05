@@ -26,10 +26,14 @@ along with StatC.  If not, see <http://www.gnu.org/licenses/>.
 /* based on NIL_P in ruby.h */
 #define FALSE_P(v) !((VALUE)(v) != Qfalse)
 
-/* classes and modules */
+/* modules */
 VALUE sc_mStatC;
 VALUE sc_mArray;
 VALUE sc_mError;
+VALUE sc_mTest;
+VALUE sc_mT;
+
+/* classes */
 VALUE sc_eError;
 
 /* @private */
@@ -185,6 +189,37 @@ static VALUE sc_se(int argc, VALUE* argv, VALUE obj)
   return DBL2NUM(sd / sqrt(len));
 }
 
+static VALUE
+sc_t_stat_welch(VALUE obj,
+                VALUE mean1, VALUE var1, VALUE len1,
+                VALUE mean2, VALUE var2, VALUE len2)
+{
+  double m1, v1, l1, m2, v2, l2, val;
+
+  m1 = NUM2DBL(mean1);
+  v1 = NUM2DBL(var1);
+  l1 = NUM2DBL(len1);
+
+  m2 = NUM2DBL(mean2);
+  v2 = NUM2DBL(var2);
+  l2 = NUM2DBL(len2);
+
+  val = (v1 / l1) + (v2 / l2);
+
+  if (val == 0.0) {
+    rb_raise(sc_eError, "Divide by zero error");
+  }
+
+  return DBL2NUM((m1 - m2) / sqrt(val));
+}
+
+
+/*********************************************************************
+
+Initializers
+
+*********************************************************************/
+
 /* Document-module: StatC::Array
 
 Statistical methods operating on the values of an array
@@ -225,6 +260,29 @@ static void sc_init_eError(void)
   sc_eError = rb_define_class_under(sc_mError, "Error", rb_eStandardError);
 }
 
+/* Document-module: StatC::Test
+
+Module containing various statistical tests.
+
+*/
+static void sc_init_mTest(void)
+{
+  sc_mTest = rb_define_module_under(sc_mStatC, "Test");
+}
+
+
+/* Document-module: StatC::Test::T
+
+Module containing T test methods.
+
+*/
+static void sc_init_mT(void)
+{
+  sc_mT = rb_define_module_under(sc_mTest, "T");
+
+  rb_define_singleton_method(sc_mT, "t_stat_welch", sc_t_stat_welch, 6);
+}
+
 /* Document-module: StatC
 
 C stats module for Ruby.
@@ -235,6 +293,10 @@ void Init_stat_c(void)
   sc_mStatC = rb_define_module("StatC");
 
   sc_init_mArray();
+
   sc_init_mError();
   sc_init_eError();
+
+  sc_init_mTest();
+  sc_init_mT();
 }
