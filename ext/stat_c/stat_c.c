@@ -221,6 +221,10 @@ sc_t_stat_welch(VALUE obj,
   v2 = NUM2DBL(var2);
   l2 = NUM2DBL(len2);
 
+  if (l1 <= 0 || l2 <= 0) {
+    rb_raise(sc_eError, "Sample sizes must be > 0");
+  }
+
   val = (v1 / l1) + (v2 / l2);
 
   if (val == 0.0) {
@@ -230,7 +234,44 @@ sc_t_stat_welch(VALUE obj,
   return DBL2NUM((m1 - m2) / sqrt(val));
 }
 
+static VALUE
+sc_dof_welch(VALUE obj,
+             VALUE var1, VALUE len1,
+             VALUE var2, VALUE len2)
+{
+  double v1, l1, v2, l2, num, denom, val, d1, d2;
 
+  v1 = NUM2DBL(var1);
+  l1 = NUM2DBL(len1);
+
+  v2 = NUM2DBL(var2);
+  l2 = NUM2DBL(len2);
+
+  if (l1 <= 0 || l2 <= 0) {
+    rb_raise(sc_eError, "Sample sizes must be > 0");
+  }
+
+  num = pow( (v1 / l1) + (v2 / l2), 2);
+
+  d1 = pow(l1, 2) * (l1 - 1);
+  d2 = pow(l2, 2) * (l2 - 1);
+
+  if (d1 == 0|| d2 == 0) {
+    rb_raise(sc_eError, "Divide by zero error");
+  }
+
+  denom =
+    (pow(v1, 2) / d1) + (pow(v2, 2) / d2);
+
+  if (denom == 0) {
+    rb_raise(sc_eError, "Divide by zero error");
+  }
+
+  val = num / denom;
+
+  return DBL2NUM(val);
+
+}
 /*********************************************************************
 
 Initializers
@@ -298,6 +339,7 @@ static void sc_init_mT(void)
   sc_mT = rb_define_module_under(sc_mTest, "T");
 
   rb_define_singleton_method(sc_mT, "t_stat_welch", sc_t_stat_welch, 6);
+  rb_define_singleton_method(sc_mT, "dof_welch", sc_dof_welch, 4);
 }
 
 /* Document-module: StatC

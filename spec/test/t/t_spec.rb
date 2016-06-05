@@ -1,3 +1,4 @@
+# coding: utf-8
 # Copyright 2016 Ryan Moore
 # Contact: moorer@udel.edu
 #
@@ -22,16 +23,40 @@ describe "StatC" do
   describe "Test" do
     describe "T" do
       describe "::t_stat_welch" do
-        context "if the denominator is zero" do
+        context "if both variances are zero" do
           it "raises StatC::Error::Error" do
-            mean1 = 0
-            mean2 = 0
+            mean1 = mean2 = 5
+            var1 = var2 = 0
 
-            var1 = 0
-            var2 = 0
+            size1 = size2 = 1
+
+            expect{StatC::Test::T.t_stat_welch(mean1, var1, size1,
+                                               mean2, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if size1 is not > 0" do
+          it "raises StatC::Error::Error" do
+            mean1 = mean2 = 5
+            var1 = var2 = 1
+
+            size1 = 0
+            size2 = 1
+
+            expect{StatC::Test::T.t_stat_welch(mean1, var1, size1,
+                                               mean2, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if size2 is not > 0" do
+          it "raises StatC::Error::Error" do
+            mean1 = mean2 = 5
+            var1 = var2 = 1
 
             size1 = 1
-            size2 = 1
+            size2 = 0
 
             expect{StatC::Test::T.t_stat_welch(mean1, var1, size1,
                                                mean2, var2, size2)}.
@@ -50,11 +75,89 @@ describe "StatC" do
 
           # ary1 <- c(-1, -2, 0, 2, 0.5)
           # ary2 <- c(1, 2.1, 3, 2, 4)
-          # print(t.test(ary1, ary2)$statistic, digits=16)
+          # print(t.test(ary1, ary2)$statistic, digits=15)
           expect(StatC::Test::T.t_stat_welch(mean1, var1, size1,
                                              mean2, var2, size2)).
             to be_within(SHelper::ALLOWED_ERR).
-                of(-2.977301061035011)
+                of(-2.97730106103501)
+        end
+      end
+
+      describe "::dof_welch" do
+        context "if size1 <= 0" do
+          it "raises StatC::Error::Error" do
+            size1 = 0
+            size2 = 32
+
+            var1 = 234
+            var2 = 82
+
+            expect {StatC::Test::T.dof_welch(var1, size1, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if size1 == 1" do
+          it "raises StatC::Error::Error (divide by zero)" do
+            size1 = 1
+            size2 = 32
+
+            var1 = 234
+            var2 = 82
+
+            expect {StatC::Test::T.dof_welch(var1, size1, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if size2 <= 0" do
+          it "raises StatC::Error::Error" do
+            size1 = 35
+            size2 = 0
+
+            var1 = 234
+            var2 = 82
+
+            expect {StatC::Test::T.dof_welch(var1, size1, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if size2 == 1" do
+          it "raises StatC::Error::Error (divide by zero)" do
+            size1 = 32
+            size2 = 1
+
+            var1 = 234
+            var2 = 82
+
+            expect {StatC::Test::T.dof_welch(var1, size1, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        context "if denom is zero" do
+          it "raises StatC::Error::Error" do
+            var1 = var2 = 0
+            size1 = size2 = 10
+
+            expect {StatC::Test::T.dof_welch(var1, size1, var2, size2)}.
+              to raise_error(StatC::Error::Error)
+          end
+        end
+
+        it "returns degrees of freedom estimated by the " +
+           "Welch–Satterthwaite equation" do
+          var1  = 2.3
+          size1 = 5
+
+          var2  = 1.282
+          size2 = 5
+
+          # print(tt$parameter, digits=15)
+          expect(StatC::Test::T.dof_welch(var1, size1, var2, size2)).
+            to be_within(SHelper::ALLOWED_ERR).
+                of 7.40213721045748
         end
       end
     end
