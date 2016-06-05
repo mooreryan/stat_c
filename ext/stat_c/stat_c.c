@@ -234,6 +234,23 @@ sc_t_stat_welch(VALUE obj,
   return DBL2NUM((m1 - m2) / sqrt(val));
 }
 
+/* Calculate degrees of freedom for Welch's t statistic
+
+@note Uses non pooled variance
+
+@param var1  [Numeric] sample variance of sample 1
+@param len1  [Numeric] size of sample 1
+@param var2  [Numeric] sample variance of sample 2
+@param len1  [Numeric] size of sample 2
+
+@example Get dof for two samples
+  StatC::Test::T.dof_welch(2.3, 5, 1.282, 5).round(2) #=> 7.40
+
+@raise [StatC::Error::Error] if divide by zero error
+
+@return [Numeric] dof
+
+*/
 static VALUE
 sc_dof_welch(VALUE obj,
              VALUE var1, VALUE len1,
