@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with StatC.  If not, see <http://www.gnu.org/licenses/>.
 
+# For t stat and dof formulas:
+# https://en.wikipedia.org/wiki/Welch%27s_t-test
+
 require "spec_helper"
 
 describe "StatC" do
