@@ -189,6 +189,23 @@ static VALUE sc_se(int argc, VALUE* argv, VALUE obj)
   return DBL2NUM(sd / sqrt(len));
 }
 
+/* Calculate Welch's t statistic
+
+@param mean1 [Numeric] mean of sample 1
+@param var1  [Numeric] sample variance of sample 1
+@param len1  [Numeric] size of sample 1
+@param mean2 [Numeric] mean of sample 2
+@param var2  [Numeric] sample variance of sample 2
+@param len1  [Numeric] size of sample 2
+
+@example Get Welch's t stat for two samples
+  StatC::Test::T.t_stat_welch(-0.1, 2.3, 5, 2.42, 1.282, 5).round(2) #=> -2.98
+
+@raise [StatC::Error::Error] if divide by zero error
+
+@return [Numeric] Welch's t statistic
+
+*/
 static VALUE
 sc_t_stat_welch(VALUE obj,
                 VALUE mean1, VALUE var1, VALUE len1,

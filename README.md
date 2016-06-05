@@ -4,6 +4,8 @@
 
 Fast, well documented C stats extension for Ruby.
 
+Pronounce it like "Statsie" and you will feel all warm and fuzzy inside!
+
 ## Installation
 
 Add this line to your application's Gemfile:
